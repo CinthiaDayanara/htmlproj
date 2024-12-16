@@ -28,7 +28,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .               # Usa el Dockerfile desde la raíz
+          context: .               # Usa el Dockerfile 
           push: true               # Sube la imagen a Docker Hub
           tags: dayanara1898/html-project:latest
 
