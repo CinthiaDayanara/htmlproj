@@ -3,7 +3,7 @@ name: CI/CD for Docker Image Deployment
 on:
   push:
     branches:
-      - test # Desencadenar en la rama de test para construir y subir la imagen
+      - test # Desencadenar en la rama de test para construir y subir la imag
 
   pull_request:
     branches:
