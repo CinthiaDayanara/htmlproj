@@ -1,4 +1,4 @@
-name: CI/CD for Node.js Application
+name: CI/CD for Static HTML Application
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 jobs:
   # Trabajo 1: Desplegar en EC2 instancia de prueba
   deploy_to_test:
-    name: Deploy Node.js App to Test EC2 Instance
+    name: Deploy Static HTML App to Test EC2 Instance
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/test' # Solo se ejecuta en un push a la rama test
 
@@ -33,17 +33,15 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }} # La clave SSH de tu instancia EC2
           port: 22
           script: |
-            # Cambiar al directorio donde está tu aplicación Node.js
-            cd /home/ec2-user/app 
+            # Cambiar al directorio donde se almacenarán los archivos estáticos
+            cd /home/ec2-user/app
             git pull origin test # Asegúrate de obtener los últimos cambios de la rama test
-            npm install # Instalar dependencias de Node.js
-            pm2 restart index.js # Si usas PM2, reinicia el servidor
-            # Si no usas PM2, puedes hacerlo con:
-            # nohup node index.js &  # Inicia la aplicación en segundo plano
+            # Copiar los archivos estáticos a la carpeta donde se sirven los archivos
+            cp -r * /var/www/html # Asumiendo que tu servidor está configurado para servir archivos en /var/www/html
 
   # Trabajo 2: Desplegar en EC2 instancias de producción
   deploy_to_production:
-    name: Deploy Node.js App to Production EC2 Instances
+    name: Deploy Static HTML App to Production EC2 Instances
     runs-on: ubuntu-latest
     needs: deploy_to_test # Este trabajo depende de que el despliegue en la instancia de test termine
     if: github.event_name == 'pull_request' # Solo se ejecuta en un PR hacia 'main'
@@ -69,8 +67,7 @@ jobs:
           script: |
             cd /home/ec2-user/app
             git pull origin main
-            npm install
-            pm2 restart index.js
+            cp -r * /var/www/html # Copiar los archivos estáticos a la carpeta de servidor web
 
       # Paso 2: Desplegar en la instancia EC2 2 (Producción)
       - name: Deploy to EC2 Instance 2 (Production)
@@ -83,5 +80,4 @@ jobs:
           script: |
             cd /home/ec2-user/app
             git pull origin main
-            npm install
-            pm2 restart index.js
+            cp -r * /var/www/html # Copiar los archivos estáticos a la carpeta de servidor web
