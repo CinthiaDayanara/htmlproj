@@ -6,7 +6,7 @@ on:
       - test # Desencadenar en la rama test para desplegar en la instancia de prueba
   pull_request:
     branches:
-      - main # Desplegar cuando se haga un PR hacia la rama main
+      - main # Desplegar cuando se haga un PR hacia la rama master
 
 jobs:
   # Trabajo 1: Desplegar en EC2 instancia de prueba
