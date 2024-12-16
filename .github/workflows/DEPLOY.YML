@@ -6,7 +6,7 @@ on:
       - test # Se ejecuta cuando se hace un push a la rama 'test'
   pull_request:
     branches:
-      - master # Se ejecuta cuando se hace un PR hacia la rama 'master'
+      - master # Se ejecuta cuando se hace un PR hacia la ram
 
 jobs:
   # Trabajo 1: Construir y subir la imagen Docker
