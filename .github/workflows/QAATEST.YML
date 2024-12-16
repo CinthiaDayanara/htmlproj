@@ -46,7 +46,7 @@ jobs:
       - name: Set up GitHub CLI
         uses: github-cli/gh-action@v2
         with:
-          gh_token: ${{ secrets.GITHUB_TOKEN }}  # Usando el token secreto para autenticar en la API de GitHub
+          gh_token: ${{ secrets.MY_GITHUB_TOKEN }}  # Usando el token secreto para autenticar en la API de GitHub
 
       - name: Create pull request
         run: |
