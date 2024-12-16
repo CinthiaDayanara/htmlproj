@@ -107,7 +107,7 @@ jobs:
             docker pull dayanara1898/html-project:latest
             docker run -d --name html-container -p 80:80 dayanara1898/html-project:latest
 
-      # Paso 2: Desplegar en la instancia EC2 2 (Producción)
+      # Paso 2: Desplegar en la instancia EC2 2 
       - name: Deploy to EC2 Instance 2 (Production)
         uses: appleboy/ssh-action@v1.1.0
         with:
