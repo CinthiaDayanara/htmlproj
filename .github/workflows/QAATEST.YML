@@ -32,7 +32,7 @@ jobs:
           push: true               # Sube la imagen a Docker Hub
           tags: dayanara1898/html-project:latest
 
-  # Trabajo 2: Desplegar la imagen en EC2 instancia de test
+  # Trabajo 2: Desplegar la imagen en EC2 instancia de te
   deploy_to_test:
     name: Deploy Docker Image to Test EC2 Instance
     runs-on: ubuntu-latest
