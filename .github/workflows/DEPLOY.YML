@@ -1,16 +1,15 @@
-name: CI/CD for Docker Image Deployment DOCKER
+name: CI/CD with Docker & Auto Pull Request
 
 on:
   push:
     branches:
-      - test  # Desencadenar en la rama de test para construir y subir la imagen
-
+      - test # Se ejecuta cuando se hace un push a la rama 'test'
   pull_request:
     branches:
-      - master  # Desplegar cuando se haga un PR hacia master
+      - master # Se ejecuta cuando se hace un PR hacia la rama 'master'
 
 jobs:
-  # Trabajo 1: Construir y subir la imagen Docker (en entorno test)
+  # Trabajo 1: Construir y subir la imagen Docker
   update_docker_image:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
@@ -28,39 +27,19 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .               # Usa el Dockerfile 
-          push: true               # Sube la imagen a Docker Hub
+          context: .
+          push: true
           tags: dayanara1898/html-project:latest
 
-  # Trabajo 2: Crear un pull request automáticamente (si es necesario)
-  create_pull_request:
-    name: Create Pull Request from Test to Master
-    runs-on: ubuntu-latest
-    needs: update_docker_image  # Depende de que la imagen Docker se haya actualizado
-    if: github.ref == 'refs/heads/test'  # Solo se ejecuta si es un push a 'test'
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up GitHub CLI
-        uses: github-cli/gh-action@v2
-        with:
-          gh_token: ${{ secrets.MY_ACCESS_TOKEN }}  # Usando el token secreto para autenticar en la API de GitHub
-
-      - name: Create pull request
-        run: |
-          gh pr create --base master --head test --title "Auto-PR from test to master" --body "Este es un PR automático creado por GitHub Actions."
-      
-  # Trabajo 3: Desplegar la imagen en EC2 instancia de test
+  # Trabajo 2: Desplegar en instancia EC2 de prueba (test)
   deploy_to_test:
-    name: Deploy Docker Image to Test EC2 Instance
+    name: Deploy to EC2 Test Instance
     runs-on: ubuntu-latest
     needs: update_docker_image
-    if: github.ref == 'refs/heads/test' # Solo se ejecuta en un push a 'test'
+    if: github.ref == 'refs/heads/test' # Solo se ejecuta cuando hay un push a 'test'
 
     steps:
-      - name: Set up SSH key for Test Instance
+      - name: Set up SSH key for EC2 Test Instance
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
@@ -79,12 +58,31 @@ jobs:
             docker pull dayanara1898/html-project:latest
             docker run -d --name html-container -p 80:80 dayanara1898/html-project:latest
 
-  # Trabajo 4: Desplegar la imagen en EC2 instancias de producción
-  deploy_to_production:
-    name: Deploy Docker Image to EC2 Instances
+  # Trabajo 3: Crear Pull Request a la rama master
+  create_pull_request:
+    name: Create Pull Request to master
     runs-on: ubuntu-latest
-    needs: create_pull_request  # Depende de que el PR haya sido creado
-    if: github.event_name == 'pull_request' && github.event.action == 'opened'  # Se ejecuta solo cuando el PR es abierto
+    needs: update_docker_image
+    if: github.ref == 'refs/heads/test' # Solo se ejecuta cuando hay un push a la rama 'test'
+
+    steps:
+      - name: Set up GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/install.sh | bash
+          gh auth login --with-token < ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Request from test to master
+        run: |
+          gh pr create --base master --head test --title "Auto PR from test to master" --body "Automatic PR from test to master after successful deployment to test."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Trabajo 4: Desplegar en instancias EC2 de producción
+  deploy_to_production:
+    name: Deploy to EC2 Production Instances
+    runs-on: ubuntu-latest
+    needs: update_docker_image
+    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'master' # Solo se ejecuta cuando el PR es hacia 'master'
 
     steps:
       - name: Set up SSH key for Production Instances
@@ -93,8 +91,8 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      # Paso 1: Desplegar en la instancia EC2 1 (Producción)
-      - name: Deploy to EC2 Instance 1 (Production)
+      # Desplegar en la primera instancia EC2 de producción
+      - name: Deploy to EC2 Production Instance 1
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.EC2_INSTANCE_1 }}
@@ -107,8 +105,8 @@ jobs:
             docker pull dayanara1898/html-project:latest
             docker run -d --name html-container -p 80:80 dayanara1898/html-project:latest
 
-      # Paso 2: Desplegar en la instancia EC2 2 
-      - name: Deploy to EC2 Instance 2 (Production)
+      # Desplegar en la segunda instancia EC2 de producción
+      - name: Deploy to EC2 Production Instance 2
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.EC2_INSTANCE_2 }}
