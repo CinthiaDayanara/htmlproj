@@ -7,7 +7,7 @@ on:
 
   pull_request:
     branches:
-      - main # Desplegar cuando se haga un PR hacia main
+      - master # Desplegar cuando se haga un PR hacia main
 
 jobs:
   # Trabajo 1: Construir y subir la imagen Docker (en entorno test)
