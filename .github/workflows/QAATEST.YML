@@ -1,4 +1,4 @@
-name: CI/CD for Docker Image Deployment
+name: CI/CD for Docker Image Deployment DOCKER
 
 on:
   push:
